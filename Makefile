@@ -1,6 +1,6 @@
 CC       ?= gcc
-CFLAGS   ?= -Wall -Wextra -Werror -pedantic -std=c11 -D_GNU_SOURCE -Iinclude
-LDFLAGS  ?= -pthread
+CFLAGS   ?= -Wall -Wextra -Werror -std=c11 -D_GNU_SOURCE -Iinclude
+#LDFLAGS  ?= -pthread
 
 # Project directories
 SRC_DIR  := src
