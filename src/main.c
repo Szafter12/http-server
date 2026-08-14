@@ -30,6 +30,8 @@ int main(int argc, char *argv[]) {
         }
 
         printf("A connection was successfully established with %s on port %s\n", host, port);
+
+        proccess_request(conn_fd);
         close(conn_fd);
     }
 
