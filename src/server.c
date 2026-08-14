@@ -38,4 +38,11 @@ int create_server_socket(char *port_number) {
   freeaddrinfo(result_list);
   result_list = NULL;
 
+  if (listen(socked_fd, BACKLOG) != 0) {
+    perror("Listen error");
+    close(socked_fd);
+    exit(EXIT_FAILURE);
+  }
+
+  return socked_fd;
 }
