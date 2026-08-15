@@ -1,6 +1,6 @@
 # Custom HTTP Server
 
-**Custom HTTP Server** – A Lightweight HTTP/1.1 Web Server Built from Scratch in C.
+A Lightweight HTTP/1.1 Web Server Built from Scratch in C.
 
 ### What the project is
 A low-level HTTP web server written entirely from scratch in C using standard POSIX APIs. Currently in active development, the server operates synchronously to serve static files (HTML, CSS, assets) over TCP/IP, with planned support for multi-threading and concurrent connection handling.
