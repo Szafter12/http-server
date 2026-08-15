@@ -125,7 +125,7 @@ void read_header(int conn_fd,rio_t *rp, char *method, char *path, char *http_ver
 
   rio_readlineb(rp, buff, MAX_BUFF);
 
-  rc = sscanf(buff, "%s %s %s", method, path, http_ver);
+  rc = sscanf(buff, "%255s %255s %255s", method, path, http_ver);
   if (rc != 3) {
     send_error(conn_fd, "400 Bad request", "Invalid http request");
   }
@@ -140,7 +140,7 @@ void read_header(int conn_fd,rio_t *rp, char *method, char *path, char *http_ver
     if (strncasecmp(buff, "Content-Length:", 15) == 0) sscanf(buff, "%*s %zu", content_length);
   }
 
-  if (*content_length > 0 && *content_length < MAX_BODY && strcpy(method, "GET") != 0) {
+  if (*content_length > 0 && *content_length < MAX_BODY && strcmp(method, "GET") != 0) {
     rio_readnb(rp, body, *content_length);
     body[*content_length] = '\0';
   }
