@@ -1,6 +1,5 @@
 # Custom HTTP Server
 
-### Project Title
 **Custom HTTP Server** – A Lightweight HTTP/1.1 Web Server Built from Scratch in C.
 
 ### What the project is
