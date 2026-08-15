@@ -7,7 +7,7 @@ void proccess_request(const int conn_fd) {
 
   rio_readinitb(&rp, conn_fd);
 
-  read_header(&rp, method, path, http_ver, content_type, connection, body, content_length);
+  read_header(conn_fd, &rp, method, path, http_ver, content_type, connection, body, &content_length);
 
   generate_response(conn_fd, path);
 }
@@ -26,12 +26,12 @@ void generate_response(int conn_fd, char *path) {
   snprintf(file_name, sizeof(file_name), ".%s", path);
 
   if (stat(file_name, &sbuf) < 0) {
-    //send_error(conn_fd, "404 Not Found", "File didn't exist");
+    send_error(conn_fd, "404 Not Found", "File didn't exist");
     return;
   }
 
   if (!(S_ISREG(sbuf.st_mode)) || !(sbuf.st_mode & S_IRUSR)) {
-    //send_error(conn_fd, "403 Forbidden", "You don't have access to this resource");
+    send_error(conn_fd, "403 Forbidden", "You don't have access to this resource");
     return;
   }
 
@@ -52,7 +52,7 @@ void generate_response(int conn_fd, char *path) {
   }
 }
 
-void send_header(const int conn_fd, size_t file_size, char *file_mime) {
+void send_header(int conn_fd, size_t file_size, char *file_mime) {
   char header[MAX_BUFF];
 
   snprintf(header, sizeof(header),
@@ -119,11 +119,16 @@ void get_content_type(const char *ext, char *file_mime) {
   strncpy(file_mime, "application/octet-stream", MAX_LINE);
 }
 
-void read_header(const rio_t *rp, char *method, char *path, char *http_ver, char *content_type, char *connection, char *body, size_t content_length) {
+void read_header(int conn_fd,rio_t *rp, char *method, char *path, char *http_ver, char *content_type, char *connection, char *body, size_t *content_length) {
   char buff[MAX_BUFF];
+  int rc = 0;
 
   rio_readlineb(rp, buff, MAX_BUFF);
-  sscanf(buff, "%s %s %s", method, path, http_ver);
+
+  rc = sscanf(buff, "%s %s %s", method, path, http_ver);
+  if (rc != 3) {
+    send_error(conn_fd, "400 Bad request", "Invalid http request");
+  }
 
   while (rio_readlineb(rp, buff, MAX_LINE) > 0) {
     if (strcmp(buff, "\r\n") == 0) break;
@@ -132,12 +137,34 @@ void read_header(const rio_t *rp, char *method, char *path, char *http_ver, char
 
     if (strncasecmp(buff, "Connection:", 11) == 0) sscanf(buff, "%*s %s", connection);
 
-    if (strncasecmp(buff, "Content-Length:", 15) == 0) sscanf(buff, "%*s %zu", &content_length);
+    if (strncasecmp(buff, "Content-Length:", 15) == 0) sscanf(buff, "%*s %zu", content_length);
   }
 
-  if (content_length > 0 && content_length < MAX_BODY) {
-    rio_readnb(rp, body, content_length);
-    body[content_length] = '\0';
+  if (*content_length > 0 && *content_length < MAX_BODY && strcpy(method, "GET") != 0) {
+    rio_readnb(rp, body, *content_length);
+    body[*content_length] = '\0';
   }
 }
 
+void send_error(int conn_fd, char *err_code, char *err_msg) {
+  char header[MAX_BUFF];
+  char body[MAX_BODY];
+
+  snprintf(body, MAX_BODY,
+    "<html><title>Error</title>"
+    "<body bgcolor=""ffffff"">\r\n"
+    "<p>%s</p>"
+    "</body></html>",
+    err_msg);
+
+  snprintf(header, sizeof(header),
+     "HTTP/1.1 %s\r\n"
+     "Server: CustomServer\r\n"
+     "Connection: close\r\n"
+     "Content-Type: text/html; charset=utf-8\r\n"
+     "Content-Length: %zu\r\n\r\n",
+     err_code, (unsigned long)strlen(body));
+
+  rio_writen(conn_fd, header, strlen(header));
+  rio_writen(conn_fd, body, strlen(body));
+}

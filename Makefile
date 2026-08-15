@@ -1,5 +1,5 @@
 CC       ?= gcc
-CFLAGS   ?= -Wall -Wextra -std=c11 -D_GNU_SOURCE -Iinclude
+CFLAGS   ?= -Wall -Wextra -Werror -std=c11 -D_GNU_SOURCE -Iinclude
 #LDFLAGS  ?= -pthread
 
 # Project directories
