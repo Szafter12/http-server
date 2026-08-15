@@ -1,6 +1,16 @@
 #include "http.h"
 #include "server.h"
 
+/*
+ * TODO
+ * - Implement uri path parser to avoid path with query parameters (/path?somequery)
+ * - Impelement protection to access resources out web root dir
+ * - Refactor http.c functions for more robust implementation
+ * - Add error more secure error handling to http.c functions
+ * - Add PHP CGI implementation to parse POST and GET methods with dynamic content
+ * - Implement multithreading
+ */
+
 int main(int argc, char *argv[]) {
     int listen_fd, conn_fd;
     char host[NI_MAXHOST], port[NI_MAXSERV];
