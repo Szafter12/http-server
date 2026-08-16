@@ -46,15 +46,22 @@ typedef struct {
     size_t file_size;
 } file_handle_t;
 
+// Main functions
 void proccess_request(int conn_fd);
+void generate_response(int conn_fd, req_info_t *req);
+void read_header(int conn_fd,rio_t *rp, req_info_t *req);
+
+
+
+// Static content functions
+void proccess_static_content(int conn_fd, file_handle_t *fh, const struct stat *sbuf, const char *method);
+void send_static_content(int file_fd, int conn_fd);
+void send_static_header(int conn_fd, size_t file_name, char *file_mime);
+
+// helper functions
 void get_content_type(const char *file_name, char *file_mime);
 void get_ext(const char *file_name, char *file_ext);
-void read_header(int conn_fd,rio_t *rp, req_info_t *req);
-void generate_response(int conn_fd, req_info_t *req);
-int parse_file_path(char *path, char *file_path, char *query_string);
-// void proccess_static_content();
-void send_content(int file_fd, int conn_fd);
-void send_header(int conn_fd, size_t file_name, char *file_mime);
 void send_error(int conn_fd, char *err_code, char *err_msg);
+int parse_file_path(char *path, char *file_path, char *query_string);
 
 #endif

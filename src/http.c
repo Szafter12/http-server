@@ -71,30 +71,40 @@ void generate_response(int conn_fd, req_info_t *req) {
     return;
   }
 
-  if (sbuf.st_mode & S_IXUSR) {
+  if (sbuf.st_mode & S_IXUSR && strcasecmp(fh->file_ext, ".php")) {
     //proccess_dynamic_content();
   } else {
-    get_ext(fh->file_path, fh->file_ext);
-    get_content_type(fh->file_ext, fh->mime);
-    fh->file_size = sbuf.st_size;
-    int file_fd = open(fh->file_path, O_RDONLY, 0);
-
-    send_header(conn_fd, fh->file_size, fh->mime);
-    send_content(file_fd, conn_fd);
-
-    close(file_fd);
+    proccess_static_content(conn_fd, fh, &sbuf, req->method);
   }
 
   free(res_info);
   free(fh);
 }
 
-void send_header(int conn_fd, size_t file_size, char *file_mime) {
+void proccess_static_content(int conn_fd, file_handle_t *fh, const struct stat *sbuf, const char *method) {
+  if (strcasecmp(method, "GET") != 0 && strcasecmp(method, "HEAD") != 0) {
+    send_error(conn_fd, "405 Method Not Allowed", "This method is not allowed on static content");
+    return;
+  }
+
+  get_ext(fh->file_path, fh->file_ext);
+  get_content_type(fh->file_ext, fh->mime);
+  fh->file_size = sbuf->st_size;
+
+  int file_fd = open(fh->file_path, O_RDONLY, 0);
+
+  send_static_header(conn_fd, fh->file_size, fh->mime);
+  send_static_content(file_fd, conn_fd);
+
+  close(file_fd);
+}
+
+void send_static_header(int conn_fd, size_t file_size, char *file_mime) {
   char header[MAX_BUFF];
 
   snprintf(header, sizeof(header),
      "HTTP/1.1 200 OK\r\n"
-     "Server: CustomServer\r\n"
+     "Server: SzafterServer\r\n"
      "Connection: close\r\n"
      "Content-Length: %zu\r\n"
      "Content-Type: %s\r\n\r\n",
@@ -103,7 +113,7 @@ void send_header(int conn_fd, size_t file_size, char *file_mime) {
   rio_writen(conn_fd, header, strlen(header));
 }
 
-void send_content(int file_fd, int conn_fd) {
+void send_static_content(int file_fd, int conn_fd) {
   char buf[MAX_BUFF];
   ssize_t n;
 

@@ -12,8 +12,7 @@
  */
 
 int main(int argc, char *argv[]) {
-    int listen_fd, conn_fd;
-    char host[NI_MAXHOST], port[NI_MAXSERV];
+    char host[NI_MAXHOST] = {0}, port[NI_MAXSERV] = {0};
     socklen_t client_len;
     struct sockaddr_storage client_addr;
     int flags = NI_NUMERICHOST | NI_NUMERICSERV;
@@ -23,13 +22,13 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    listen_fd = create_server_socket(argv[1]);
+    int listen_fd = create_server_socket(argv[1]);
 
     printf("Listen on port %s\n", argv[1]);
 
     while(1) {
         client_len = sizeof(client_addr);
-        conn_fd = accept(listen_fd, (SA *)&client_addr, &client_len);
+        int conn_fd = accept(listen_fd, (SA *) &client_addr, &client_len);
 
         int rc;
         if ((rc = getnameinfo((SA *)&client_addr, client_len, host, NI_MAXHOST, port, NI_MAXSERV, flags)) != 0) {
@@ -41,6 +40,4 @@ int main(int argc, char *argv[]) {
         proccess_request(conn_fd);
         close(conn_fd);
     }
-
-    return 0;
 }
