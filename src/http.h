@@ -19,11 +19,39 @@ typedef struct {
     const char *mime;
 } mime_map_t;
 
+typedef struct {
+    char method[MAX_LINE],
+    path[MAX_LINE],
+    query_string[MAX_LINE],
+    http_ver[MAX_LINE],
+    content_type[MAX_LINE],
+    connection[MAX_LINE],
+    body[MAX_BODY];
+    size_t content_length;
+} req_info_t;
+
+typedef struct {
+    char http_ver[MAX_LINE],
+    status_code[MAX_LINE],
+    Location[MAX_LINE],
+    content_type[MAX_LINE],
+    body[MAX_BODY];
+    size_t content_length;
+} res_info_t;
+
+typedef struct {
+    char file_path[MAX_LINE];
+    char mime[MAX_LINE];
+    char file_ext[MAX_LINE];
+    size_t file_size;
+} file_handle_t;
+
 void proccess_request(int conn_fd);
 void get_content_type(const char *file_name, char *file_mime);
 void get_ext(const char *file_name, char *file_ext);
-void read_header(int conn_fd,rio_t *rp, char *method, char *path, char *http_ver, char *content_type, char *connection, char *body, size_t *content_length);
-void generate_response(int conn_fd, char *path);
+void read_header(int conn_fd,rio_t *rp, req_info_t *req);
+void generate_response(int conn_fd, req_info_t *req);
+int parse_file_path(char *path, char *file_path, char *query_string);
 // void proccess_static_content();
 void send_content(int file_fd, int conn_fd);
 void send_header(int conn_fd, size_t file_name, char *file_mime);
