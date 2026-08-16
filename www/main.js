@@ -1,1 +1,1 @@
-document.getElementById("message").textContent = "IT'S WORKING";
+document.getElementById("message").textContent = "JS WORKING";

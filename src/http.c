@@ -51,6 +51,7 @@ void generate_response(int conn_fd, req_info_t *req) {
   res_info_t *res_info = malloc(sizeof(res_info_t));
   if (res_info == NULL) {
     fprintf(stderr, "malloc() failed\n");
+    free(fh);
     return;
   }
 
@@ -63,7 +64,7 @@ void generate_response(int conn_fd, req_info_t *req) {
     return;
   }
 
-  if (!(S_ISREG(sbuf.st_mode)) || !(sbuf.st_mode & S_IRUSR) || status == 1) {
+  if (!(S_ISREG(sbuf.st_mode)) || !(sbuf.st_mode & S_IRUSR) || status == -1) {
     send_error(conn_fd, "403 Forbidden", "You don't have access to this resource");
     free(res_info);
     free(fh);
