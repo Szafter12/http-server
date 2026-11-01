@@ -2,7 +2,7 @@
 
 int create_server_socket(char *port_number) {
   struct addrinfo *p, *result_list, hints;
-  int socked_fd, opt = 1;
+  int socked_fd = 0, opt = 1;
 
   memset(&hints, 0, sizeof(struct addrinfo));
   hints.ai_socktype = SOCK_STREAM;
@@ -38,7 +38,7 @@ int create_server_socket(char *port_number) {
   freeaddrinfo(result_list);
   result_list = NULL;
 
-  if (listen(socked_fd, BACKLOG) != 0) {
+  if (socked_fd != 0 && listen(socked_fd, BACKLOG) != 0) {
     perror("Listen error");
     close(socked_fd);
     exit(EXIT_FAILURE);

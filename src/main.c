@@ -1,13 +1,10 @@
 #include "http.h"
 #include "server.h"
+#include "threadpool.h"
 
 /*
  * TODO
- * - Implement uri path parser to separate path from query string (DONE)
- * - Impelement protection to access resources out web root dir (DONE)
- * - Refactor http.c functions for more robust implementation (IN PROGRESS)
- * - Add error more secure error handling to http.c functions
- * - Add PHP CGI implementation to parse POST and GET methods with dynamic content
+ * - Add simple CGI
  * - Implement multithreading
  */
 
@@ -23,12 +20,13 @@ int main(int argc, char *argv[]) {
     }
 
     int listen_fd = create_server_socket(argv[1]);
-
+    pthread_t tid;
     printf("Listen on port %s\n", argv[1]);
 
     while(1) {
         client_len = sizeof(client_addr);
-        int conn_fd = accept(listen_fd, (SA *) &client_addr, &client_len);
+        int *conn_fd_p = (int *)malloc(sizeof(int));
+        *conn_fd_p = accept(listen_fd, (SA *) &client_addr, &client_len);
 
         int rc;
         if ((rc = getnameinfo((SA *)&client_addr, client_len, host, NI_MAXHOST, port, NI_MAXSERV, flags)) != 0) {
@@ -36,8 +34,16 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
 
+        if (*conn_fd_p < 0) {
+            free(conn_fd_p);
+            continue;
+        }
+
         printf("A connection was successfully established with %s on port %s\n", host, port);
-        proccess_request(conn_fd);
-        close(conn_fd);
+
+        pthread_create(&tid, NULL, thread, conn_fd_p);
     }
+
+    close(listen_fd);
+    return 0;
 }

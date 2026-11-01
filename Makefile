@@ -66,7 +66,7 @@ valgrind: $(TARGET)
 
 run: release
 	@echo "$(COLOR_GREEN)[RUNNING]$(COLOR_RESET) Starting server at port 8080"
-	./$(TARGET) 8080 www
+	./$(TARGET) 8080
 
 -include $(DEPS)
 
