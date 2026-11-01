@@ -62,13 +62,23 @@ clean:
 valgrind: CFLAGS += -g -O0 -DDEBUG
 valgrind: $(TARGET)
 	@echo "$(COLOR_BLUE)[VALGRIND]$(COLOR_RESET) Starting server with Valgrind control"
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(TARGET) 8080 www
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(TARGET) 8080
 
 run: release
 	@echo "$(COLOR_GREEN)[RUNNING]$(COLOR_RESET) Starting server at port 8080"
 	./$(TARGET) 8080
 
 -include $(DEPS)
+
+test: debug
+	@chmod +x tests/test_suite.sh tests/test_concurrency.sh tests/test_sigpipe.sh
+	@./$(TARGET) 8080 & SERVER_PID=$$!; \
+	sleep 0.5; \
+	./tests/test_suite.sh || { kill $$SERVER_PID; exit 1; }; \
+	./tests/test_concurrency.sh || { kill $$SERVER_PID; exit 1; }; \
+	./tests/test_sigpipe.sh || { kill $$SERVER_PID; exit 1; }; \
+
+	kill $$SERVER_PID 2>/dev/null || true;
 
 help:
 	@echo "Available commands:"
@@ -77,3 +87,4 @@ help:
 	@echo "  make run                Compiles and starts the server on port 8080"
 	@echo "  make valgrind           Starts the server in Valgrind"
 	@echo "  make clean              Removes binary files and objects (.o)"
+	@echo "  make test               Start all testing scripts"

@@ -1,6 +1,7 @@
 #include "http.h"
 #include "server.h"
 #include "threadpool.h"
+#include <signal.h>
 
 /*
  * TODO
@@ -9,6 +10,7 @@
  */
 
 int main(int argc, char *argv[]) {
+    signal(SIGPIPE, SIG_IGN);
     char host[NI_MAXHOST] = {0}, port[NI_MAXSERV] = {0};
     socklen_t client_len;
     struct sockaddr_storage client_addr;

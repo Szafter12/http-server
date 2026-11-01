@@ -110,7 +110,11 @@ void send_static_header(int conn_fd, size_t file_size, char *file_mime) {
      "Content-Type: %s\r\n\r\n",
      file_size, file_mime);
 
-  rio_writen(conn_fd, header, strlen(header));
+  //rio_writen(conn_fd, header, strlen(header));
+  if (rio_writen(conn_fd, header, strlen(header)) < 0) {
+    close(conn_fd);
+    return;
+  }
 }
 
 void send_static_content(int file_fd, int conn_fd) {
@@ -118,7 +122,11 @@ void send_static_content(int file_fd, int conn_fd) {
   ssize_t n;
 
   while ((n = read(file_fd, buf, sizeof(buf))) > 0) {
-    rio_writen(conn_fd, buf, n);
+    //rio_writen(conn_fd, buf, n);
+    if (rio_writen(conn_fd, buf, n) < 0) {
+      close(conn_fd);
+      return;
+    }
   }
 }
 
