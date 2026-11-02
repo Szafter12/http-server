@@ -70,9 +70,48 @@ void generate_response(int conn_fd, req_info_t *req) {
     free(fh);
     return;
   }
+  if (strcasecmp(fh->file_ext, ".php") == 0) {
+    pid_t pid = fork();
 
-  if (sbuf.st_mode & S_IXUSR && strcasecmp(fh->file_ext, ".php")) {
-    //proccess_dynamic_content();
+    if (pid < 0) {
+      send_error(conn_fd, "500 Internal Server Error", "Something goes wrong on the server");
+      return;
+    }
+
+    if (pid == 0) {
+      char *envp[] = {
+        "REDIRECT_STATUS=200",
+        NULL, NULL, NULL, NULL
+      };
+
+      char env_script[MAX_LINE + 24], env_method[MAX_LINE + 24], env_query[MAX_LINE +24];
+      snprintf(env_script, sizeof(env_script), "SCRIPT_FILENAME=%s", fh->file_path);
+      snprintf(env_method, sizeof(env_method), "REQUEST_METHOD=%s", req->method);
+      snprintf(env_query, sizeof(env_query), "QUERY_STRING=%s", req->query_string);
+
+      envp[1] = env_script;
+      envp[2] = env_method;
+      envp[3] = env_query;
+
+      char *argv[] = {"php-cgi", NULL};
+
+      char *status_line = "HTTP/1.1 200 OK\r\n";
+      rio_writen(conn_fd, status_line, strlen(status_line));
+
+      dup2(conn_fd, STDOUT_FILENO);
+
+      close(conn_fd);
+
+      if (execve("/bin/php-cgi", argv, envp) == -1) {
+        printf("Content-Type: text/plain\r\n\r\n");
+        printf("500 Internal Server Error: Nie udalo sie uruchomic php-cgi.\n");
+        exit(EXIT_FAILURE);
+      }
+    } else {
+      int status;
+      waitpid(pid, &status, 0);
+    }
+
   } else {
     proccess_static_content(conn_fd, fh, &sbuf, req->method);
   }

@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include "rio.h"
 #include <unistd.h>
+#include <sys/wait.h>
 
 #define MAX_LINE 1024
 #define MAX_BODY 8192
