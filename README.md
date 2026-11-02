@@ -78,7 +78,7 @@ The server is capable of serving dynamic PHP content. A test file is located in 
 3. Open your browser or use `curl` to access the file, appending a query string to test variable parsing:
 
 ```bash
-curl "http://localhost:8080/php/index.php?name=Tester&id=42"
+curl "http://localhost:8080/www/php/index.php?name=Test&id=42"
 ```
 
 ### 4. Automated Testing
